@@ -6,44 +6,34 @@
 
 // GET・HEAD 以外は GET に変換される
 typedef struct ErrorPageDirective {
+    // error_page 404 /404.html;
+    // error_page 404 =200 のとき、内部転送しステータスコードを上書きする
     std::vector<int> statuses;
     std::string target;
-    // 初期化子リストで初期化
     int override_status;
     ErrorPageDirective(): override_status(-1) {}
 } ErrorPageDirective;
 
 typedef struct ReturnDirective {
+    // return 200;
+    // return 200 text;
+    // return 200 https://google.com/
+    // return 200 /;
     int status;
+    std::string text;
     std::string target;
-
 } ReturnDirective;
 
-struct AddressRule {
-    std::string cidr_or_host;
-};
-
-struct LimitExceptDirective {
-    std::vector<Method> method;
-    unsigned int allowed_methods_mask;
-    // all を指定すると全て拒否, 基本的には address が入る
-    std::vector<AddressRule> allow;
-    std::vector<AddressRule> deny;
-
-    LimitExceptDirective() : allowed_methods_mask(0) {}
-};
-
-
-// localhost も実装コストほぼ 0 だから対応できると良い
-// localhost:8080 とか
-// 127.0.0.1 に置換して格納する
 typedef struct ListenDirective {
+    // listen 127.0.0.1:8080;
+    // listen 80;
+    // listen 127.0.0.1:8080 default_server;
+    // listen localhost:8080;
     std::string address;
-    // nginx 準拠
-    // range: 0 ~ 65535
-    // 初期化子リストで初期化
+    // port range: 0 ~ 65535
     uint16_t port;
-    ListenDirective() : port(80) {}
+    bool is_default_server;
+    ListenDirective() : port(DEFAULT_PORT), is_default_server(false) {}
 } ListenDirective;
 
 class CommonConfig {
@@ -51,7 +41,6 @@ class CommonConfig {
         // 値が 0 の場合制限なしを意味する
         off_t client_max_body_size;
         ErrorPageDirective error_page;
-        // return が予約後のため prefix に _ をつける
         ReturnDirective redirect;
         std::string root;
         // 初期化子リストで初期化
@@ -64,17 +53,18 @@ class CommonConfig {
 
 class LocationConfig : public CommonConfig {
     private:
-        LimitExceptDirective limit_except;
+        // 許可するメソッドが入るだけ（例：GET HEAD POST DELETE）
+        std::vector<Method> allowed_methods;
         std::string cgi_path;
         std::string cgi_extension;
-        std::string match;
+        std::string path;
 };
 
 class ServerConfig : public CommonConfig {
     private:
         std::vector<LocationConfig> locations;
         ListenDirective listens;
-        std::vector<std::string> server_name;
+        std::vector<std::string> server_names;
 };
 
 

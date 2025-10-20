@@ -6,21 +6,21 @@
 #include <map>
 
 
-namespace Method {
-    enum Method {
-        GET,
-        HEAD,
-        POST,
-        DELETE,
-    };
-}
+enum Method {
+    GET,
+    HEAD,
+    POST,
+    DELETE,
+};
 
 // uint16_t が c++98 だと標準でサポートされるか怪しいため、typedef で定義
 typedef unsigned short uint16_t;
 
 typedef long long off_t;
 
-const std::string HTTP_VERSION = "HTTP/1.1";
+extern const char* HTTP_VERSION;
+extern const uint16_t DEFAULT_PORT;
+
 
 
 // TODO 実装を .cpp に移す

@@ -4,7 +4,12 @@
 #include <sstream>
 #include "common.h"
 
-// TODO Location ヘッダー追加
+class UriPath {
+    private:
+        std::string path;
+        std::string query_string;
+};
+
 class HttpDate {
     public:
         static HttpDate from_string(const std::string& s);
@@ -23,22 +28,24 @@ class HttpCommonHeader {
 };
 
 
-// TODO HttpConfig でも同じような構造を定義してるからまとめても良さそう
 struct HostHeader {
     std::string address;
     uint16_t port;
+    HostHeader() : port(DEFAULT_PORT) {}
 };
 
 
 class HttpRequest : public HttpCommonHeader {
-    Method::Method method;
+    Method method;
     HostHeader host;
+    UriPath request_target;
 };
 
 class HttpResponse : public HttpCommonHeader {
-    HttpDate date;
     int status_code;
     std::string message;
+    HttpDate date;
+    std::string location;
 };
 
 class HttpParser {
